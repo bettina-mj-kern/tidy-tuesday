@@ -161,4 +161,4 @@ animated_underdogs <- ggplot(underdogs, aes(x = Year, y = Rank, group = Breed)) 
 
 animated_underdogs_finetuned <- animate(animated_underdogs, end_pause = 120, duration = 20, fps = 10, width = 800, height = 700)
 # save the animated gif
-anim_save("/Users/tinchen/Documents/Datenanalyse/Coding/Projects/TidyTuesday/2022/2022-02-01/underdogs_ranking.gif", animated_underdogs_finetuned)
+anim_save("2022/2022-02-01/underdogs_ranking.gif", animated_underdogs_finetuned)
