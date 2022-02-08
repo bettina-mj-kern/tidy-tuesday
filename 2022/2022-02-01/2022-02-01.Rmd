@@ -1,0 +1,171 @@
+---
+title: "Tidy Tuesday Week 5"
+author: "bettina-mj-kern"
+date: "03/02/2022"
+output: 
+  html_document:
+    toc: TRUE
+    theme: "spacelab"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidytuesdayR)
+library(tidyverse)
+library(ggbump)
+theme_set(theme_minimal())
+```
+
+### Load Data
+
+This week's TidyTuesday data are about dogs, which gives me a lot of joy. I grew up around dogs and feel a rush of affection every time I spot a person's furry companion on the street or in a park. On extroverted days I ask for permission to pet the dog and do so with an enthusiasm that probably makes the dog owner worry whether they'll ever get rid of me again. But any way -- I'm getting distracted. I have never stolen or stalked a dog, and this concludes my digression on dog love.
+
+Let's get the data.
+
+```{r cars, message=FALSE}
+ranks <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/breed_rank.csv")
+```
+
+The first data contain the dog breeds and their ranks from 2013 until 2020. 
+```{r, message=FALSE}
+traits <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/breed_traits.csv")
+```
+
+The second data file has detailed information of each dog breeds physiological (shedding level, coat length, etc.) and psychological traits (playfulness, openness to strangers, etc.). 
+```{r, message=FALSE}
+description <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/trait_description.csv")
+```
+
+The last file gives detailed information about the meaning of these traits and examples of a high and low manifestation of each trait.
+
+### Data Cleaning
+
+Let us now have a closer look at the data and plot a few variables. Are any data points missing? Maybe dog breeds were added to or removed from the ranking.
+
+```{r pressure, echo=FALSE}
+ranks |> 
+  select(ends_with(" Rank")) |> 
+  summary() 
+
+```
+
+Indeed, the summary of the ranks for each year shows that 195 dog breeds were considered in 2020. All previous years, it there were 176 dog breeds. I will  exclude the newly added dog breeds, as observations that occur only once are not very informative in a bump chart that visualise rank changes over time.
+
+```{r}
+na_breeds <- ranks[rowSums(is.na(ranks)) > 0, ]
+knitr::kable(na_breeds[, 1:9])
+```
+
+I will drop all rows with missing values.
+```{r}
+#ranks <- ranks[!rownames(ranks) %in% rownames(na_breeds), ]
+ranks <- drop_na(ranks)
+```
+
+
+### Data Preparation
+
+A good way to visualise ranked data is the so-called bump chart. It shows the changes in rank over time for several observations, in our case dog breeds. To build a bump chart using ggplot, a time column is needed. Thus, I need to transform the data a little. Before I can get to this, there is an issue to fix: The columns with the rank for each have a space in their name:
+```{r colnames-pre-fix}
+colnames(select(ranks, ends_with(" Rank")))
+```
+
+
+This makes it very difficult to work with them, plus, having the word _Rank_ in every column name is superfluous; I only need the year information in order to pivot the data and obtain meaningful cell entries.
+```{r fix-colnames}
+names(ranks) <- gsub(names(ranks), pattern = " Rank$", replacement = "")
+colnames(ranks)
+```
+
+This looks a lot better. Let's now transform the data to long format with an additional row for each year for each dog breed using the _pivot_longer()_ function. This is necessary to plot the data per year.
+
+```{r}
+ranks_long <- pivot_longer(ranks, cols = starts_with("20"), names_to = "Year", values_to = "Rank") |> 
+  group_by(Breed) |> 
+  mutate(first_year = min(Year),
+         last_year = max(Year)) |> 
+  ungroup()
+
+ranks_long |> 
+  select(- c("links", "Image"))
+```
+
+All the year columns are gone now -- or, more precisely: moved somewhere else. In their stead, we have additional rows that contain the rank for each year. The entries containing the breed are multiplied to accommodate this.
+
+Since the dog breed is a grouping variable, I will convert it to type factor:
+
+```{r}
+ranks_long$Breed <- factor(ranks_long$Breed)
+```
+
+
+Before we can proceed to the visualisation with the bump chart, there is one more thing to consider. 176 is a lot of data points. This  will make the bump chart very crowded and it will be more difficult to derive meaningful insights from it. Thus, I will create one bump chart for the 10 most and 10 least popular dog breeds. Let's select these cases from the data.
+```{r}
+hotdogs <- ranks_long[ranks_long$Rank <= 10, ]
+underdogs <- ranks_long[ranks_long$Rank >= (nrow(ranks)-10), ]
+```
+
+
+### Data Visualisation
+
+There is a dedicated package for creating bump charts, but to hone my ggplot skills, I will first use only ggplot to generate the bump chart. Basically, all that is needed is a combination of a line layer and a point layer. 
+Let's get started.
+```{r}
+ranks_long |> 
+  ggplot(mapping = aes(x = Year, y = Rank, group = Breed)) +
+    geom_line(aes(group = Breed)) +
+    geom_point()
+```
+
+
+
+This boy definitely needs some tweaking. This may take a while, so I will use the _ggbump_ approach first to get some results before I  go down the rabbit hole of plot beautification -- that might take a while.
+
+```{r basic-bump}
+ggplot() +
+  geom_bump(data = hotdogs, mapping = aes(x = Year, y = Rank, group = Breed))
+```
+
+Nice, we have the skelleton of a bump plot! In a first step, I'll add text to denote the dog breed the individual lines refer to.
+
+```{r add-text}
+ggplot() +
+  geom_bump(data = hotdogs, mapping = aes(x = Year, y = Rank, group = Breed)) +
+  geom_text(data = hotdogs |>  filter(first_year == TRUE | last_year == TRUE), mapping = aes(x = Year, y = Rank, label = Breed))
+```
+
+## Data Animation
+I will use _gganimate_ to stepwise draw the plot year by year. The _gganimate_ package introduces different elements to control and fine-tune this process:
+  - enter_*() defines how new data should appear
+  - exit_*() defines how old data should disappear
+  - transition_*() defines how the data should be spread out and how it relates to itself over time
+  - shadow_*() defines how the data from other time points should be presented at a given point in time
+  - view_*() defines how the positional scales should change along the animation
+  
+```{r}
+animated_hotdogs2<- ggplot(hotdogs, aes(x = Year, y = Rank, group = Breed)) +
+  geom_line(data = hotdogs, 
+            mapping = aes(x = Year, 
+                          y = Rank, 
+                          colour = Breed)) +
+  scale_color_manual(values = c("#E5F16D", "#B7EE7B", "#8CE790", "#65DEA5", "#47D2B8", 
+                                "#40C5C5", "#53B5CB", "#6FA5C9", "#8893BE", "#9B81AC", "#A67095", "#A9617B", "#47D2B8")) +
+  scale_y_reverse(breaks = seq(from = 1, to = 10)) +
+  geom_image(data = hotdogs, aes(x = Year, y = Rank, image = Image)) +
+  theme(legend.position = "none",
+        panel.grid  = element_blank(), # remove all grid lines
+        plot.title = element_text(size = 18, face = "bold"),
+        plot.subtitle = element_text(size = 12),
+        plot.margin = margin(0.5, 5, 0.5, 0.5, "cm")) +
+  geom_text(data = hotdogs |> filter(Year == max(Year)), 
+            aes(x = Year, y = Rank, label = Breed), 
+            hjust = 0, 
+            nudge_x = 0.3)  +
+  labs(title = "Hot Dogs!",
+       subtitle = "Top Ranked Dog Breeds from 2013 until 2020") +
+  coord_cartesian(clip = "off") +
+  transition_reveal(as.numeric(Year))
+```
+
+
+
