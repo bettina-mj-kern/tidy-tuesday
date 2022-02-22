@@ -53,16 +53,15 @@ theme_set(theme_minimal(base_family = "Chakra Petch", base_size = 14))
 colnames(illiteracy)[colnames(illiteracy) == "Iliteracy Rate"] <- "Rate"
 
 
-
 # Data Visualisation ----
 ggplot(data = data, aes(x = Rate, y = Date)) +
   # reverse scale to reflect reduction in illiteracy rate
   scale_x_reverse(breaks = illiteracy$Rate,
-  labels = paste(as.character(illiteracy$Rate),
+                  labels = paste(as.character(illiteracy$Rate),
                  "%",
                  sep = ""),
   name = NULL) +
-  # mirror y axis to get descending
+  # mirror y axis so year decreases going down from the top
   scale_y_reverse(breaks = data$Date, name = NULL) + 
   # draw vertical segments
   geom_segment(aes(x = Rate, y = Date, xend = Rate, yend = 1940),  
@@ -73,23 +72,16 @@ ggplot(data = data, aes(x = Rate, y = Date)) +
   # draw second, slightly smaller horizontal segment in different colour
   geom_segment(aes(x = 100 + 0.05, y = Date, xend = Rate - 0.05, yend = Date),
              lineend = "round", lwd = 3, col = "#dccab2") +
-  # add label next to y axis (might delete this bit later, I'm not going for 100% accuracy)
-  # annotate("text", x = 110, y = 1942, label = "PERCENT OF\nILLITERACY.", 
-  #         size = 2.2, hjust = 0.5) 
-
-   expand_limits(y = c(1860, 1930)) +
-  
+  # expand y axis to make plot a little slimmer
+  expand_limits(y = c(1860, 1930)) +
+  # add title and caption
   labs(title = "\nILLITERACY.", caption = "#DuBoisChallenge2022 \n Recreation by @bettina_mj_kern") +
-  theme(
-   #  axis.text = element_blank(),
-    panel.grid = element_blank(),
-   #  panel.background = element_blank(),
-     plot.background = element_rect(fill = "#D1C0A8"),
-     plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-     plot.caption = element_text(hjust = 0.5, color = "#777777", family = "Chakra Petch"),
-     text = element_text(family = "Chakra Petch", size = 14)
-  )
-
+  theme(panel.grid = element_blank(), # remove grid lines
+        plot.background = element_rect(fill = "#D1C0A8"), # background colours
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 16), # arrange title
+        plot.caption = element_text(hjust = 0.5, color = "#777777", family = "Chakra Petch"), # tune caption
+        text = element_text(family = "Chakra Petch", size = 14), # text settings
+        plot.margin = margin(0, 7, 0, 7, "cm")) # stretch the plot slim
 
 
 
