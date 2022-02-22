@@ -81,7 +81,9 @@ ggplot(data = data, aes(x = Rate, y = Date)) +
         plot.title = element_text(hjust = 0.5, face = "bold", size = 16), # arrange title
         plot.caption = element_text(hjust = 0.5, color = "#777777", family = "Chakra Petch"), # tune caption
         text = element_text(family = "Chakra Petch", size = 14), # text settings
-        plot.margin = margin(0, 7, 0, 7, "cm")) # stretch the plot slim
+        plot.margin = margin(0, 6, 0.5, 6, "cm")) # stretch the plot slim
+
+ggsave(filename = "2022/2022-02-15/plate6-recreation.png")
 
 
 
