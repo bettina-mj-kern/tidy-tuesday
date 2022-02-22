@@ -42,43 +42,60 @@ illiteracy <- readr::read_csv("https://raw.githubusercontent.com/ajstarks/dubois
 # 2. font_files() lists the available font files in the current font paths.
 
 
-# slide 16: https://speakerdeck.com/ajstarks/recreating-the-dubois-data-portraits?slide=16 
-# This font family is available on google fonts. The showtext package has a function for this.
+
+# Let us add a font I found on Google that is a little similar to what Du Bois used
 font_add_google(name = "Chakra Petch", family = "Chakra Petch")
 showtext_auto()
-theme_set(theme_minimal())
+theme_set(theme_minimal(base_family = "Chakra Petch", base_size = 14))
 
 # Data Preparation ---- 
 # With such a little data set there isn't much to do. 
 colnames(illiteracy)[colnames(illiteracy) == "Iliteracy Rate"] <- "Rate"
 
-illiteracy$NegRate <- illiteracy$Rate * -1
+
 
 # Data Visualisation ----
+ggplot(data = data, aes(x = Rate, y = Date)) +
+  # reverse scale to reflect reduction in illiteracy rate
+  scale_x_reverse(breaks = illiteracy$Rate,
+  labels = paste(as.character(illiteracy$Rate),
+                 "%",
+                 sep = ""),
+  name = NULL) +
+  # mirror y axis to get descending
+  scale_y_reverse(breaks = data$Date, name = NULL) + 
+  # draw vertical segments
+  geom_segment(aes(x = Rate, y = Date, xend = Rate, yend = 1940),  
+               lineend = "square", lwd = 3.6) +
+  # draw horizontal line segments
+  geom_segment(aes(x = 100, y = Date, xend = Rate, yend = Date),
+               lineend = "square", lwd = 3.6) +
+  # draw second, slightly smaller horizontal segment in different colour
+  geom_segment(aes(x = 100 + 0.05, y = Date, xend = Rate - 0.05, yend = Date),
+             lineend = "round", lwd = 3, col = "#dccab2") +
+  # add label next to y axis (might delete this bit later, I'm not going for 100% accuracy)
+  # annotate("text", x = 110, y = 1942, label = "PERCENT OF\nILLITERACY.", 
+  #         size = 2.2, hjust = 0.5) 
 
-ggplot(data = illiteracy, mapping = aes(y = Rate, x = NegRate)) +
-  geom_bar(stat = "identity", fill = "#191a15", width = 1) +
-  geom_segment(aes(x = NegRate, 
-                   y = Rate,
-                   xend = -102,
-                   yend = Rate),
-               size = 3, colour = "#191a15") +
-  geom_segment(aes(x = NegRate+0.8,
-                   y = Rate,
-                   xend = -101.8,
-                   yend = Rate),  
-               size = 2.5, colour = "#d4c4b4") +
-  scale_x_continuous(breaks = illiteracy$NegRate, 
-                     labels = paste(as.character(illiteracy$Rate), 
-                                    "%", 
-                                    sep = ""),
-                     name = NULL) + # removes the variable name 
-  scale_y_continuous(breaks = illiteracy$Rate,
-                     labels = illiteracy$Date,
-                     name = NULL) +
-  ggtitle(label = "ILLITERACY.") +
-  labs(caption = "Du Bois Challenge 2022 \n Recreator: Bettina MJ Kern") +
-  theme(text = element_text(family = "Chakra Petch"))
+   expand_limits(y = c(1860, 1930)) +
+  
+  labs(title = "\nILLITERACY.", caption = "#DuBoisChallenge2022 \n Recreation by @bettina_mj_kern") +
+  theme(
+   #  axis.text = element_blank(),
+    panel.grid = element_blank(),
+   #  panel.background = element_blank(),
+     plot.background = element_rect(fill = "#D1C0A8"),
+     plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+     plot.caption = element_text(hjust = 0.5, color = "#777777", family = "Chakra Petch"),
+     text = element_text(family = "Chakra Petch", size = 14)
+  )
+
+
+
+
+
+
+
 
 
 
