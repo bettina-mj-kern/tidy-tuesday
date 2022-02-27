@@ -9,7 +9,7 @@ library(tidyverse)
 library(showtext)
 
 # Data Import ----
-illiteracy <- readr::read_csv("https://raw.githubusercontent.com/ajstarks/dubois-data-portraits/master/challenge/2022/challenge06/data.csv")
+data <- readr::read_csv("https://raw.githubusercontent.com/ajstarks/dubois-data-portraits/master/challenge/2022/challenge06/data.csv")
 
 # These data are rather unique -- just a percentage for each decade from 1860 until 1900. I expected the complete data that were used to calculate these percentages. But then again, Du Bois' visualisations are unique in themselves. 
 # I have never used ggplot2 without having these individual data points, so this is something new and very interesting. Let's get started!
@@ -56,13 +56,13 @@ colnames(illiteracy)[colnames(illiteracy) == "Iliteracy Rate"] <- "Rate"
 # Data Visualisation ----
 ggplot(data = data, aes(x = Rate, y = Date)) +
   # reverse scale to reflect reduction in illiteracy rate
-  scale_x_reverse(breaks = illiteracy$Rate,
-                  labels = paste(as.character(illiteracy$Rate),
-                 "%",
-                 sep = ""),
-  name = NULL) +
+  scale_x_reverse(breaks = data$Rate,
+                  labels =   ifelse(data$Date == "1900", 
+                                    "(50%?)", 
+                                    paste(as.character(illiteracy$Rate), "%", sep = "")), 
+                  name = NULL) +
   # mirror y axis so year decreases going down from the top
-  scale_y_reverse(breaks = data$Date, name = NULL) + 
+  scale_y_reverse(labels = (ifelse(data$Date != "1900", data$Date, "(1900?)")), name = NULL, breaks = data$Date) + 
   # draw vertical segments
   geom_segment(aes(x = Rate, y = Date, xend = Rate, yend = 1940),  
                lineend = "square", lwd = 3.6) +
@@ -72,10 +72,10 @@ ggplot(data = data, aes(x = Rate, y = Date)) +
   # draw second, slightly smaller horizontal segment in different colour
   geom_segment(aes(x = 100 + 0.05, y = Date, xend = Rate - 0.05, yend = Date),
              lineend = "round", lwd = 3, col = "#dccab2") +
-  # expand y axis to make plot a little slimmer
+  # expand y axis to make plot appear a little slimmer
   expand_limits(y = c(1860, 1930)) +
   # add title and caption
-  labs(title = "\nILLITERACY.", caption = "#DuBoisChallenge2022 \n Recreation by @bettina_mj_kern") +
+  labs(title = "\nILLITERACY.", caption = "\n#DuBoisChallenge2022 \n Recreation by @bettina_mj_kern") +
   theme(panel.grid = element_blank(), # remove grid lines
         plot.background = element_rect(fill = "#D1C0A8"), # background colours
         plot.title = element_text(hjust = 0.5, face = "bold", size = 16), # arrange title
