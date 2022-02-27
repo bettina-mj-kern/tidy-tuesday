@@ -9,7 +9,7 @@ library(tidyverse)
 library(showtext)
 
 # Data Import ----
-data <- readr::read_csv("https://raw.githubusercontent.com/ajstarks/dubois-data-portraits/master/challenge/2022/challenge06/data.csv")
+plate06 <- readr::read_csv("https://raw.githubusercontent.com/ajstarks/dubois-data-portraits/master/challenge/2022/challenge06/data.csv")
 
 # These data are rather unique -- just a percentage for each decade from 1860 until 1900. I expected the complete data that were used to calculate these percentages. But then again, Du Bois' visualisations are unique in themselves. 
 # I have never used ggplot2 without having these individual data points, so this is something new and very interesting. Let's get started!
@@ -50,19 +50,19 @@ theme_set(theme_minimal(base_family = "Chakra Petch", base_size = 14))
 
 # Data Preparation ---- 
 # With such a little data set there isn't much to do. 
-colnames(illiteracy)[colnames(illiteracy) == "Iliteracy Rate"] <- "Rate"
+colnames(plate06)[colnames(plate06) == "Iliteracy Rate"] <- "Rate"
 
 
 # Data Visualisation ----
-ggplot(data = data, aes(x = Rate, y = Date)) +
+ggplot(data = plate06, aes(x = Rate, y = Date)) +
   # reverse scale to reflect reduction in illiteracy rate
-  scale_x_reverse(breaks = data$Rate,
-                  labels =   ifelse(data$Date == "1900", 
+  scale_x_reverse(breaks = plate06$Rate,
+                  labels =   ifelse(plate06$Date == "1900", 
                                     "(50%?)", 
                                     paste(as.character(illiteracy$Rate), "%", sep = "")), 
                   name = NULL) +
   # mirror y axis so year decreases going down from the top
-  scale_y_reverse(labels = (ifelse(data$Date != "1900", data$Date, "(1900?)")), name = NULL, breaks = data$Date) + 
+  scale_y_reverse(labels = (ifelse(plate06$Date != "1900", plate06$Date, "(1900?)")), name = NULL, breaks = plate06$Date) + 
   # draw vertical segments
   geom_segment(aes(x = Rate, y = Date, xend = Rate, yend = 1940),  
                lineend = "square", lwd = 3.6) +
