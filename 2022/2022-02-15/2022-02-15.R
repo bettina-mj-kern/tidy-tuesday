@@ -59,7 +59,7 @@ ggplot(data = plate06, aes(x = Rate, y = Date)) +
   scale_x_reverse(breaks = plate06$Rate,
                   labels =   ifelse(plate06$Date == "1900", 
                                     "(50%?)", 
-                                    paste(as.character(illiteracy$Rate), "%", sep = "")), 
+                                    paste(as.character(plate06$Rate), "%", sep = "")), 
                   name = NULL) +
   # mirror y axis so year decreases going down from the top
   scale_y_reverse(labels = (ifelse(plate06$Date != "1900", plate06$Date, "(1900?)")), name = NULL, breaks = plate06$Date) + 
@@ -73,15 +73,18 @@ ggplot(data = plate06, aes(x = Rate, y = Date)) +
   geom_segment(aes(x = 100 + 0.05, y = Date, xend = Rate - 0.05, yend = Date),
              lineend = "round", lwd = 3, col = "#dccab2") +
   # expand y axis to make plot appear a little slimmer
-  expand_limits(y = c(1860, 1930)) +
+  expand_limits(y = c(min(plate06$Date), max(plate06$Date) + 30)) +
   # add title and caption
   labs(title = "\nILLITERACY.", caption = "\n#DuBoisChallenge2022 \n Recreation by @bettina_mj_kern") +
+  annotate("text", x = 110, y = 1940, label = "PERCENT OF\nILLITERACY") +
+  coord_cartesian(clip = "off", 
+                  xlim = c(max(plate06$Rate), min(plate06$Rate))) + 
   theme(panel.grid = element_blank(), # remove grid lines
         plot.background = element_rect(fill = "#D1C0A8"), # background colours
         plot.title = element_text(hjust = 0.5, face = "bold", size = 16), # arrange title
         plot.caption = element_text(hjust = 0.5, color = "#777777", family = "Chakra Petch"), # tune caption
         text = element_text(family = "Chakra Petch", size = 14), # text settings
-        plot.margin = margin(0, 6, 0.5, 6, "cm")) # stretch the plot slim
+        plot.margin = margin(0, 6, 0.5, 6, "cm")) # stretch the plot
 
 ggsave(filename = "2022/2022-02-15/plate6-recreation.png")
 
