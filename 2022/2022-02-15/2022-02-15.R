@@ -73,10 +73,10 @@ ggplot(data = plate06, aes(x = Rate, y = Date)) +
   geom_segment(aes(x = 100 + 0.05, y = Date, xend = Rate - 0.05, yend = Date),
              lineend = "round", lwd = 3, col = "#dccab2") +
   # expand y axis to make plot appear a little slimmer
-  expand_limits(y = c(min(plate06$Date), max(plate06$Date) + 30)) +
+  expand_limits(y = c(min(plate06$Date), max(plate06$Date) + 40)) +
   # add title and caption
   labs(title = "\nILLITERACY.", caption = "\n#DuBoisChallenge2022 \n Recreation by @bettina_mj_kern") +
-  annotate("text", x = 110, y = 1940, label = "PERCENT OF\nILLITERACY") +
+  annotate("text", x = 110, y = 1940, label = "PERCENT OF\nILLITERACY", family = "Chakra Petch") +
   coord_cartesian(clip = "off", 
                   xlim = c(max(plate06$Rate), min(plate06$Rate))) + 
   theme(panel.grid = element_blank(), # remove grid lines
