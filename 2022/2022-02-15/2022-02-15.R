@@ -86,7 +86,7 @@ ggplot(data = plate06, aes(x = Rate, y = Date)) +
         text = element_text(family = "Chakra Petch", size = 14), # text settings
         plot.margin = margin(0, 6, 0.5, 6, "cm")) # stretch the plot
 
-ggsave(filename = "2022/2022-02-15/plate6-recreation.png")
+ggsave(filename = "2022/2022-02-15/plate06-recreation.png", height = 25, width = 25, units = "cm")
 
 
 
